@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ProposalIQ — منصة العروض الذكية</title>
+<style>
+:root{
+  --primary:#1a4f8a;--primary-dark:#0f2f5c;--accent:#e8b84b;--accent-light:#fdf3d8;
+  --success:#17a85a;--danger:#d63031;--warning:#f59e0b;
+  --bg:#f5f7fa;--card:#fff;--text:#1a202c;--muted:#718096;--border:#e2e8f0;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);direction:rtl;min-height:100vh;}
+button{cursor:pointer;font-family:inherit;}
+a{color:inherit;text-decoration:none;}
+
+/* LOADING */
+#loadingScreen{position:fixed;inset:0;background:var(--primary-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;}
+#loadingScreen.hidden{opacity:0;pointer-events:none;}
+.loading-logo{background:var(--accent);color:var(--primary-dark);width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.4rem;margin-bottom:16px;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* NAV */
+.nav{background:var(--primary-dark);color:#fff;padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.nav-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;}
+.nav-logo{background:var(--accent);color:var(--primary-dark);width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem;}
+.nav-actions{display:flex;gap:6px;align-items:center;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;border:none;font-size:.85rem;font-weight:600;transition:all .2s;white-space:nowrap;justify-content:center;}
+.btn-primary{background:var(--accent);color:var(--primary-dark);}
+.btn-primary:hover{background:#d4a03a;}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4);}
+.btn-outline:hover{background:rgba(255,255,255,.1);}
+.btn-blue{background:var(--primary);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+.btn-ghost:hover{background:var(--bg);}
+.btn-wa{background:#25d366;color:#fff;}
+.btn-google{background:#fff;color:#3c4043;border:1.5px solid #dadce0;display:flex;align-items:center;gap:8px;}
+.btn-google:hover{background:#f8f9fa;}
+.btn-sm{padding:6px 11px;font-size:.78rem;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* PAGES */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:56px 16px 64px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:.78rem;margin-bottom:16px;}
+.hero h1{font-size:2rem;font-weight:800;line-height:1.25;margin-bottom:12px;}
+.hero p{font-size:.95rem;opacity:.85;max-width:480px;margin:0 auto 24px;line-height:1.7;}
+.hero-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;}
+.hero-stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.stat-val{font-size:1.6rem;font-weight:800;color:var(--accent);}
+.stat-val span{font-size:.85rem;}
+.stat-label{font-size:.74rem;opacity:.7;margin-top:2px;text-align:center;}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.card-title{font-weight:700;font-size:.9rem;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.section-title{font-size:.9rem;font-weight:700;color:var(--primary);border-bottom:2px solid var(--accent);padding-bottom:6px;margin-bottom:14px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:24px;max-width:400px;width:100%;position:relative;max-height:92vh;overflow-y:auto;}
+.modal-title{font-weight:700;font-size:1rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.modal-close{position:absolute;top:12px;left:12px;background:none;border:none;font-size:1.2rem;color:var(--muted);cursor:pointer;padding:4px;}
+
+/* FORMS */
+.form-group{margin-bottom:12px;}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:4px;}
+input,select,textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:.86rem;font-family:inherit;direction:rtl;transition:border .2s;background:#fff;color:var(--text);}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);}
+textarea{resize:vertical;min-height:80px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ALERTS */
+.alert{border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:.83rem;}
+.alert-info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;}
+.alert-warn{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;}
+.alert-success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}
+.alert-danger{background:#fde8e8;color:#c53030;border:1px solid #feb2b2;}
+
+/* ROLE TOGGLE */
+.role-toggle{display:flex;gap:8px;margin-bottom:14px;}
+.role-btn{flex:1;padding:10px;border-radius:9px;border:2px solid var(--border);background:transparent;font-size:.86rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.role-btn.active-manager{background:#f0f4ff;border-color:var(--primary);color:var(--primary);}
+.role-btn.active-agent{background:#f0fff5;border-color:var(--success);color:var(--success);}
+
+/* BADGE */
+.badge{font-size:.7rem;padding:2px 7px;border-radius:5px;font-weight:700;}
+.badge-manager{background:#e8eeff;color:var(--primary);}
+.badge-agent{background:#e8f5e9;color:var(--success);}
+.status-badge{font-size:.7rem;padding:3px 8px;border-radius:7px;font-weight:700;white-space:nowrap;}
+.s-draft{background:#e8eaf6;color:#3949ab;}
+.s-pending{background:#fff3e0;color:#e65100;}
+.s-sent{background:#e3f2fd;color:#1565c0;}
+.s-accepted{background:#e8f5e9;color:#2e7d32;}
+.s-rejected{background:#fde8e8;color:#c53030;}
+
+/* DASHBOARD */
+.dash-wrap{max-width:860px;margin:0 auto;padding:16px;}
+.dash-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;}
+.stat-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:14px;text-align:center;}
+.stat-num{font-size:1.6rem;font-weight:800;color:var(--primary);}
+.stat-lbl{font-size:.74rem;color:var(--muted);margin-top:2px;}
+
+/* PROPOSALS LIST */
+.proposal-list{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+.proposal-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;cursor:pointer;transition:background .15s;}
+.proposal-item:last-child{border-bottom:none;}
+.proposal-item:hover{background:#f8fafc;}
+.prop-title{font-weight:700;font-size:.88rem;}
+.prop-client{font-size:.76rem;color:var(--muted);}
+.prop-amount{font-weight:700;color:var(--primary);font-size:.86rem;}
+.empty-state{text-align:center;padding:40px;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:8px;}
+
+/* COMPANY CODE */
+.company-code-box{background:linear-gradient(135deg,#f0f4ff,#e8eeff);border:2px solid var(--primary);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;}
+.company-code-value{font-size:1.5rem;font-weight:900;letter-spacing:4px;color:var(--primary);font-family:monospace;}
+
+/* PLAN BAR */
+.plan-bar{background:#e8f5e9;border:1px solid #c8e6c9;border-radius:9px;padding:10px 14px;margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+.plan-bar-item span{font-size:.72rem;color:var(--muted);display:block;}
+.plan-bar-item strong{font-size:.86rem;}
+
+/* NEW PROPOSAL */
+.new-prop-wrap{max-width:760px;margin:0 auto;padding:16px;}
+.back-link{display:inline-flex;align-items:center;gap:5px;font-size:.82rem;color:var(--primary);cursor:pointer;margin-bottom:14px;}
+.items-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+.items-table th{background:var(--bg);padding:8px;font-size:.76rem;font-weight:700;text-align:right;border:1px solid var(--border);}
+.items-table td{padding:6px;border:1px solid var(--border);}
+.items-table td input{border:none;background:transparent;padding:2px;font-size:.84rem;width:100%;}
+.del-row{background:none;border:none;color:var(--danger);font-size:.95rem;cursor:pointer;padding:2px 4px;}
+.totals-box{background:var(--bg);border-radius:9px;padding:14px;margin-bottom:14px;}
+.totals-box table{width:100%;border-collapse:collapse;}
+.totals-box td{padding:4px 7px;font-size:.84rem;}
+.logo-upload-area{border:2px dashed var(--border);border-radius:9px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;}
+.logo-upload-area:hover{border-color:var(--primary);background:var(--accent-light);}
+
+/* PREVIEW */
+.preview-wrap{max-width:800px;margin:0 auto;padding:16px;}
+.preview-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.proposal-paper{background:#fff;border-radius:13px;border:1px solid var(--border);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.07);}
+.paper-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:22px 24px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.paper-brand{font-size:1.2rem;font-weight:800;}
+.paper-meta .ref{font-size:.95rem;font-weight:700;color:var(--accent);}
+.paper-meta{text-align:left;font-size:.78rem;}
+.paper-body{padding:22px 24px;}
+.paper-parties{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.party-box{background:var(--bg);border-radius:9px;padding:12px;}
+.party-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.party-name{font-size:.9rem;font-weight:800;}
+.party-detail{font-size:.78rem;color:var(--muted);margin-top:1px;}
+.paper-section-title{font-weight:700;color:var(--primary);border-bottom:2px solid var(--accent);padding-bottom:4px;margin:16px 0 10px;font-size:.86rem;}
+.paper-ai-text{font-size:.84rem;line-height:1.8;white-space:pre-wrap;}
+.paper-items-table{width:100%;border-collapse:collapse;margin:10px 0;}
+.paper-items-table th{background:var(--primary);color:#fff;padding:8px 10px;font-size:.78rem;text-align:right;}
+.paper-items-table td{padding:8px 10px;font-size:.82rem;border-bottom:1px solid var(--border);}
+.paper-items-table tr:nth-child(even) td{background:var(--bg);}
+.totals-table{min-width:280px;border-collapse:collapse;}
+.totals-table td{padding:5px 9px;font-size:.84rem;}
+.t-label{color:var(--muted);text-align:right;}
+.t-val{font-weight:700;text-align:left;}
+.t-final td{background:var(--primary);color:#fff;font-weight:800;}
+.paper-validity{background:#fff8e1;border:1.5px solid var(--accent);border-radius:9px;padding:10px 14px;margin-top:16px;display:flex;align-items:center;gap:8px;font-size:.82rem;}
+.paper-stamp-area{margin-top:22px;border-top:2px dashed var(--border);padding-top:16px;display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap;}
+.stamp-box{text-align:center;min-width:120px;}
+.stamp-label{font-size:.7rem;color:var(--muted);margin-bottom:6px;}
+.stamp-placeholder{height:55px;border:1.5px dashed var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.74rem;}
+.paper-footer{background:var(--primary-dark);color:rgba(255,255,255,.7);padding:12px 24px;text-align:center;font-size:.74rem;}
+.tracking-bar{background:#e3f2fd;border:1px solid #90caf9;border-radius:9px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.fomo-bar{background:linear-gradient(135deg,#e65100,#f57c00);color:#fff;border-radius:9px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:.84rem;}
+.neg-box{background:#f0f4ff;border:1.5px solid var(--primary);border-radius:11px;padding:14px;margin-bottom:12px;}
+.neg-result{background:#fff;border-radius:7px;padding:10px;font-size:.83rem;line-height:1.7;margin-top:8px;border:1px solid var(--border);}
+
+/* APPROVAL */
+.approval-item{background:#fff;border:1.5px solid var(--warning);border-radius:11px;padding:14px;margin-bottom:8px;}
+
+/* ADMIN */
+.admin-wrap{max-width:720px;margin:0 auto;padding:16px;}
+.token-item{background:#fff;border:1px solid var(--border);border-radius:9px;padding:10px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.token-code{font-family:monospace;font-size:.85rem;background:var(--bg);padding:3px 8px;border-radius:4px;}
+
+/* PW STRENGTH */
+.pw-strength{height:3px;border-radius:2px;margin-top:4px;background:var(--border);transition:all .3s;}
+.pw-strength.weak{background:var(--danger);width:30%;}
+.pw-strength.medium{background:var(--warning);width:60%;}
+.pw-strength.strong{background:var(--success);width:100%;}
+
+/* FOOTER */
+.footer{background:var(--primary-dark);color:rgba(255,255,255,.8);padding:22px 16px;text-align:center;}
+.footer-links{display:flex;gap:16px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;}
+.footer-links a{font-size:.82rem;cursor:pointer;}
+
+/* LEGAL */
+.legal-wrap{max-width:660px;margin:0 auto;padding:24px 16px;}
+.legal-wrap h3{font-size:.9rem;margin:12px 0 5px;}
+.legal-wrap p,.legal-wrap li{font-size:.84rem;color:var(--muted);line-height:1.7;margin-bottom:5px;}
+
+/* DIVIDER */
+.or-divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:.8rem;}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+@media(max-width:520px){
+  .hero h1{font-size:1.6rem;}
+  .form-row{grid-template-columns:1fr;}
+  .paper-parties{grid-template-columns:1fr;}
+  .paper-header{flex-direction:column;}
+  .paper-body,.paper-header{padding:16px;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff!important;}
+  .nav,.preview-actions,.modal-overlay,.fomo-bar,.tracking-bar,.neg-box,
+  .page:not(#pagePreview){display:none!important;}
+  #pagePreview{display:block!important;}
+  .preview-wrap{padding:0!important;max-width:100%!important;}
+  .proposal-paper{box-shadow:none!important;border:none!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+  <div class="loading-logo">PQ</div>
+  <div style="color:#fff;font-size:1rem;font-weight:700;margin-bottom:6px;">ProposalIQ</div>
+  <div style="color:rgba(255,255,255,.5);font-size:.82rem;">جارٍ التحميل...</div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">PQ</div>
+    <span>ProposalIQ</span>
+  </div>
+  <div class="nav-actions" id="navActions">
+    <button class="btn btn-outline btn-sm" onclick="showModal('loginModal')">دخول</button>
+    <button class="btn btn-primary btn-sm" onclick="showModal('registerModal')">ابدأ مجاناً</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="pageHome">
+  <div class="hero">
+    <div class="hero-badge">🇸🇦 منصة B2B سعودية · AI · ZATCA</div>
+    <h1>عروض تجارية تُغلق الصفقات</h1>
+    <p>نظام مبيعات كامل — يُولّد عروضك الاحترافية، يربط مديرك بمندوبيك، ويُخبرك متى شاف العميل عرضك.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" style="font-size:.95rem;padding:11px 22px;" onclick="showModal('registerModal')">ابدأ مجاناً — 3 عروض</button>
+      <button class="btn btn-outline" style="font-size:.95rem;padding:11px 22px;" onclick="showModal('loginModal')">لديّ حساب</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-val">3<span>د</span></div><div class="stat-label">بدل 8 ساعات</div></div>
+      <div><div class="stat-val">15<span>%</span></div><div class="stat-label">VAT تلقائي</div></div>
+      <div><div class="stat-val">∞</div><div class="stat-label">عملاء</div></div>
+      <div><div class="stat-val">0<span>ر</span></div><div class="stat-label">للبداية</div></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;padding:36px 16px;">
+    <div style="text-align:center;margin-bottom:24px;"><h2 style="font-size:1.3rem;font-weight:800;margin-bottom:6px;">كل ما تحتاجه في مكان واحد</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:800px;margin:0 auto;">
+      <div class="card"><div style="font-size:1.5rem;margin-bottom:8px;">👁️</div><div style="font-weight:700;margin-bottom:4px;font-size:.9rem;">تتبع فتح العرض</div><div style="font-size:.8rem;color:var(--muted);">اعرف متى شافه العميل</div></div>
+      <div class="card"><div style="font-size:1.5rem;margin-bottom:8px;">🤖</div><div style="font-weight:700;margin-bottom:4px;font-size:.9rem;">توليد AI</div><div style="font-size:.8rem;color:var(--muted);">نص احترافي في 30 ثانية</div></div>
+      <div class="card"><div style="font-size:1.5rem;margin-bottom:8px;">✅</div><div style="font-weight:700;margin-bottom:4px;font-size:.9rem;">دورة الاعتماد</div><div style="font-size:.8rem;color:var(--muted);">المدير يعتمد قبل الإرسال</div></div>
+      <div class="card"><div style="font-size:1.5rem;margin-bottom:8px;">👥</div><div style="font-weight:700;margin-bottom:4px;font-size:.9rem;">إدارة الفريق</div><div style="font-size:.8rem;color:var(--muted);">مدير + مندوبين</div></div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg);padding:36px 16px;">
+    <div style="text-align:center;margin-bottom:24px;"><h2 style="font-size:1.3rem;font-weight:800;">الباقات</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:800px;margin:0 auto;">
+      <div class="card"><div style="font-weight:800;margin-bottom:6px;">🆓 مجاني</div><div style="font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:8px;">0 ريال</div><div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">3 عروض · VAT · PDF</div><button class="btn btn-primary btn-full btn-sm" onclick="showModal('registerModal')">ابدأ الآن</button></div>
+      <div class="card" style="border:2px solid var(--primary);"><div style="font-weight:800;margin-bottom:6px;">⭐ متقدم</div><div style="font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:8px;">600 <span style="font-size:.85rem;font-weight:400;">ريال/شهر</span></div><div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">150 عرض · فريق · AI</div><a class="btn btn-wa btn-full btn-sm" href="https://wa.me/966565833185" target="_blank">📱 واتساب</a></div>
+    </div>
+  </div>
+
+  <div style="background:var(--primary);color:#fff;padding:36px 16px;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:8px;">تواصل معنا</h2>
+    <a href="https://wa.me/966565833185" target="_blank" class="btn btn-wa" style="font-size:.95rem;padding:11px 22px;">📱 واتساب — 966565833185+</a>
+  </div>
+  <div class="footer">
+    <div class="footer-links">
+      <a onclick="showPage('pageTerms')">شروط الاستخدام</a>
+      <a onclick="showPage('pagePrivacy')">سياسة الخصوصية</a>
+    </div>
+    <div style="font-size:.76rem;">© 2026 ProposalIQ · ARKANE AI</div>
+  </div>
+</div>
+
+<!-- MANAGER DASHBOARD -->
+<div class="page" id="pageManagerDash">
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div><h2 style="font-size:1.2rem;font-weight:800;">مرحباً، <span id="mgrName">—</span>! 👔</h2><div style="font-size:.82rem;color:var(--muted);">لوحة تحكم المدير</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">خروج</button>
+    </div>
+    <div class="company-code-box">
+      <div style="font-size:.76rem;color:var(--muted);margin-bottom:7px;">كود شركتك — أعطه لمندوبيك</div>
+      <div class="company-code-value" id="mgrCompanyCode">——————</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="copyCompanyCode()">📋 نسخ</button>
+    </div>
+    <div id="mgrSubInfo" style="display:none;" class="plan-bar">
+      <div class="plan-bar-item"><span>الباقة</span><strong id="mgrSubPlan">—</strong></div>
+      <div class="plan-bar-item"><span>العروض المتبقية</span><strong id="mgrSubQuota" style="color:var(--primary);">—</strong></div>
+    </div>
+    <div id="mgrActivateSection"></div>
+    <div class="card">
+      <div class="card-title">📋 بانتظار الاعتماد <span id="mgrPendingCount" style="background:var(--danger);color:#fff;border-radius:8px;padding:1px 7px;font-size:.7rem;"></span></div>
+      <div id="mgrApprovalsList"><div style="text-align:center;padding:16px;color:var(--muted);font-size:.84rem;">لا توجد عروض ✅</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="mgrTotalAgents">0</div><div class="stat-lbl">👥 مندوبون</div></div>
+      <div class="stat-card"><div class="stat-num" id="mgrTotalProps">0</div><div class="stat-lbl">📄 عروض</div></div>
+      <div class="stat-card"><div class="stat-num" id="mgrSentProps">0</div><div class="stat-lbl">📤 مُرسَلة</div></div>
+      <div class="stat-card"><div class="stat-num" id="mgrAcceptedProps">0</div><div class="stat-lbl">✅ مقبولة</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 مندوبو الشركة</div>
+      <div id="mgrAgentsList"><div style="text-align:center;padding:18px;color:var(--muted);font-size:.84rem;">لا يوجد مندوبون بعد</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 جميع العروض</div>
+      <div id="mgrAllProposals"><div class="empty-state"><div class="empty-icon">📄</div><div>لا توجد عروض بعد</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT DASHBOARD -->
+<div class="page" id="pageAgentDash">
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div><h2 style="font-size:1.2rem;font-weight:800;">مرحباً، <span id="agentName">—</span>! 👋</h2><div style="font-size:.82rem;color:var(--muted);" id="agentCompanyLabel">—</div></div>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-primary btn-sm" onclick="showPage('pageNewProposal')">+ عرض جديد</button>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">خروج</button>
+      </div>
+    </div>
+    <div id="agentSubInfo" style="display:none;" class="plan-bar">
+      <div class="plan-bar-item"><span>الباقة</span><strong id="agentSubPlan">—</strong></div>
+      <div class="plan-bar-item"><span>العروض المتبقية</span><strong id="agentSubQuota" style="color:var(--primary);">—</strong></div>
+    </div>
+    <div id="agentActivateSection"></div>
+    <div id="agentRejections"></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="agTotalProps">0</div><div class="stat-lbl">📄 إجمالي</div></div>
+      <div class="stat-card"><div class="stat-num" id="agPending">0</div><div class="stat-lbl">🕐 انتظار</div></div>
+      <div class="stat-card"><div class="stat-num" id="agSent">0</div><div class="stat-lbl">📤 مُرسَلة</div></div>
+      <div class="stat-card"><div class="stat-num" id="agAccepted">0</div><div class="stat-lbl">✅ مقبولة</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 عروضي</div>
+      <div id="agentProposalList"><div class="empty-state"><div class="empty-icon">📄</div><div>لا يوجد عروض بعد</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW PROPOSAL -->
+<div class="page" id="pageNewProposal">
+  <div class="new-prop-wrap">
+    <div class="back-link" onclick="goToDashboard()">← رجوع</div>
+    <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:14px;">✨ عرض جديد</h2>
+    <div class="card">
+      <div class="section-title">🖼️ شعار الشركة</div>
+      <div class="logo-upload-area" onclick="document.getElementById('logoFileInput').click()">
+        <img id="logoPreview" style="max-height:60px;max-width:160px;display:none;" src="" alt="شعار"/>
+        <div id="logoPlaceholderText"><div style="font-size:1.5rem;margin-bottom:5px;">🏢</div><div style="font-size:.84rem;color:var(--muted);">اضغط لرفع الشعار</div></div>
+        <input type="file" id="logoFileInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)"/>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:7px;display:none;" id="removeLogoBtn" onclick="removeLogo()">✕ إزالة</button>
+    </div>
+    <div class="card">
+      <div class="section-title">🏢 بيانات شركتك</div>
+      <div class="form-row">
+        <div class="form-group"><label>اسم الشركة *</label><input id="myCompany" placeholder="شركة ARKANE"/></div>
+        <div class="form-group"><label>المسمى الوظيفي</label><input id="myTitle" placeholder="مدير المبيعات"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>رقم السجل التجاري</label><input id="myCR" placeholder="1010XXXXXX"/></div>
+        <div class="form-group"><label>الرقم الضريبي VAT</label><input id="myVAT" placeholder="300XXXXXXXXX"/></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">👤 بيانات العميل</div>
+      <div class="form-row">
+        <div class="form-group"><label>اسم شركة العميل *</label><input id="clientCompany" placeholder="شركة الخليج"/></div>
+        <div class="form-group"><label>جهة التواصل</label><input id="clientContact" placeholder="أحمد الزهراني"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>المدينة</label><select id="clientCity"><option>الرياض</option><option>جدة</option><option>الدمام</option><option>أبها</option><option>مكة المكرمة</option><option>المدينة المنورة</option><option>تبوك</option><option>بريدة</option><option>أخرى</option></select></div>
+        <div class="form-group"><label>البريد الإلكتروني</label><input id="clientEmail" type="email" placeholder="client@company.com"/></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">📋 تفاصيل العرض</div>
+      <div class="form-group"><label>موضوع العرض *</label><input id="propSubject" placeholder="توفير وتركيب نظام الأمن والمراقبة"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>القطاع</label><select id="propSector"><option>تقنية المعلومات</option><option>مقاولات وبناء</option><option>رعاية صحية</option><option>تجزئة وتوزيع</option><option>خدمات مالية</option><option>تعليم</option><option>نفط وطاقة</option><option>استشارات</option></select></div>
+        <div class="form-group"><label>الصلاحية (أيام)</label><input id="propValidity" type="number" value="30" min="1"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>مدة التنفيذ</label><input id="propDuration" placeholder="4 أسابيع"/></div>
+        <div class="form-group"><label>شروط الدفع</label><select id="propPaymentTerms"><option>50% مقدم، 50% عند التسليم</option><option>100% مقدم</option><option>30 يوم بعد التسليم</option><option>دفعات شهرية</option></select></div>
+      </div>
+      <div class="form-group"><label>ملاحظات للـ AI</label><textarea id="propNotes" placeholder="تفاصيل إضافية..."></textarea></div>
+    </div>
+    <div class="card">
+      <div class="section-title">💰 البنود والأسعار</div>
+      <table class="items-table" id="itemsTable">
+        <thead><tr><th style="width:44%">البند</th><th style="width:15%">الكمية</th><th style="width:26%">السعر (ريال)</th><th style="width:9%"></th></tr></thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+      <button class="btn btn-ghost btn-sm" onclick="addItem()">+ بند</button>
+      <div class="form-group" style="margin-top:10px;max-width:160px;"><label>خصم (ريال)</label><input id="propDiscount" type="number" value="0" min="0" oninput="recalcTotals()"/></div>
+      <div class="totals-box">
+        <table>
+          <tr><td>المجموع قبل الخصم</td><td style="text-align:left;font-weight:700;" id="totSubtotal">0 ريال</td></tr>
+          <tr style="color:var(--danger);"><td>الخصم</td><td style="text-align:left;font-weight:700;" id="totDiscount">- 0 ريال</td></tr>
+          <tr><td>المجموع بعد الخصم</td><td style="text-align:left;font-weight:700;" id="totAfterDiscount">0 ريال</td></tr>
+          <tr><td>VAT 15%</td><td style="text-align:left;font-weight:700;" id="totVAT">0 ريال</td></tr>
+          <tr style="border-top:2px solid var(--border);"><td style="font-weight:800;">الإجمالي شامل الضريبة</td><td style="text-align:left;font-weight:800;color:var(--primary);font-size:1rem;" id="totFinal">0 ريال</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">🖋️ ختم الشركة</div>
+      <div class="logo-upload-area" onclick="document.getElementById('stampFileInput').click()">
+        <img id="stampPreview" style="max-height:70px;display:none;" src="" alt="ختم"/>
+        <div id="stampPlaceholderText"><div style="font-size:1.4rem;margin-bottom:4px;">🖋️</div><div style="font-size:.84rem;color:var(--muted);">اضغط لرفع ختم أو توقيع</div></div>
+        <input type="file" id="stampFileInput" accept="image/*" style="display:none;" onchange="handleStampUpload(event)"/>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:7px;display:none;" id="removeStampBtn" onclick="removeStamp()">✕ إزالة</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;padding-bottom:28px;">
+      <button class="btn btn-ghost" onclick="saveProposal('draft')" id="btnSaveDraft">💾 مسودة</button>
+      <button class="btn btn-blue" onclick="saveProposal('pending')" id="btnSendApproval">📋 إرسال للمدير</button>
+      <button class="btn btn-primary" onclick="generateAI()" id="btnGenerateAI">⚡ توليد AI</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div class="page" id="pagePreview">
+  <div class="preview-wrap">
+    <div class="back-link" onclick="goToDashboard()">← لوحة التحكم</div>
+    <div class="preview-actions">
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ PDF</button>
+      <button class="btn btn-wa btn-sm" onclick="shareWA()">📱 واتساب</button>
+      <button class="btn btn-ghost btn-sm" onclick="shareEmail()">✉️ إيميل</button>
+      <button class="btn btn-success btn-sm" onclick="updateProposalStatus('sent')">📤 مُرسَل</button>
+      <button class="btn btn-blue btn-sm" onclick="updateProposalStatus('accepted')">✅ مقبول</button>
+    </div>
+    <div class="tracking-bar">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:1.1rem;">👁️</span><div><div style="font-weight:700;font-size:.84rem;color:#1565c0;">تتبع العرض</div><div id="trackingStatus" style="font-size:.76rem;color:#555;">لم يُفتح بعد</div></div></div>
+      <div style="display:flex;gap:7px;align-items:center;"><span id="trackingViewCount" style="background:#1565c0;color:#fff;border-radius:14px;padding:2px 10px;font-size:.76rem;font-weight:700;">0 مشاهدة</span><button class="btn btn-ghost btn-sm" onclick="manualRecordView()">+مشاهدة</button></div>
+    </div>
+    <div class="neg-box">
+      <div style="font-weight:700;margin-bottom:8px;font-size:.88rem;color:var(--primary);">🧠 مساعد التفاوض</div>
+      <div style="display:flex;gap:7px;">
+        <input id="negotiationInput" placeholder="مثال: العميل يريد خصم 20%" style="flex:1;font-size:.82rem;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;"/>
+        <button class="btn btn-blue btn-sm" onclick="runNegotiationAI()">اقترح</button>
+      </div>
+      <div id="negotiationResult" class="neg-result" style="display:none;"></div>
+    </div>
+    <div class="fomo-bar" id="fomoBar"><span style="font-size:1.2rem;">⏰</span><div>هذا العرض ساري لمدة <strong id="fomoDays">—</strong> يوم</div></div>
+    <div class="proposal-paper" id="proposalPaper">
+      <div class="paper-header">
+        <div>
+          <img id="paperLogoImg" style="max-height:50px;max-width:140px;object-fit:contain;background:rgba(255,255,255,.15);border-radius:7px;padding:4px;display:none;" src="" alt="شعار"/>
+          <div class="paper-brand" id="paperCompanyName">ProposalIQ</div>
+          <div style="font-size:.74rem;opacity:.7;" id="paperCompanyTitle"></div>
+        </div>
+        <div class="paper-meta">
+          <div class="ref" id="paperRef">PQ-2026-001</div>
+          <div style="margin-top:4px;" id="paperDate">التاريخ: —</div>
+          <div id="paperValidity2">الصلاحية: — يوم</div>
+        </div>
+      </div>
+      <div class="paper-body">
+        <div class="paper-parties">
+          <div class="party-box"><div class="party-label">من: مُقدِّم العرض</div><div class="party-name" id="partyFromName">—</div><div class="party-detail" id="partyFromTitle"></div><div class="party-detail" id="partyFromCR"></div><div class="party-detail" id="partyFromVAT"></div></div>
+          <div class="party-box"><div class="party-label">إلى: العميل</div><div class="party-name" id="partyToName">—</div><div class="party-detail" id="partyToContact"></div><div class="party-detail" id="partyToCity"></div><div class="party-detail" id="partyToEmail"></div></div>
+        </div>
+        <div class="paper-section-title">موضوع العرض</div>
+        <div id="paperSubject" style="font-size:.94rem;font-weight:700;margin-bottom:5px;"></div>
+        <div class="paper-section-title">تفاصيل العرض</div>
+        <div class="paper-ai-text" id="paperAIText">جارٍ التحميل...</div>
+        <div class="paper-section-title">البنود والأسعار</div>
+        <table class="paper-items-table"><thead><tr><th>#</th><th>البند</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody id="paperItemsBody"></tbody></table>
+        <div style="margin-top:14px;"><table class="totals-table"><tbody id="paperTotalsBody"></tbody></table></div>
+        <div class="paper-section-title">شروط الدفع ومدة التنفيذ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="party-box"><div class="party-label">شروط الدفع</div><div class="party-name" id="paperPayTerms">—</div></div>
+          <div class="party-box"><div class="party-label">مدة التنفيذ</div><div class="party-name" id="paperDurationBox">—</div></div>
+        </div>
+        <div class="paper-validity"><span style="font-size:1.2rem;">⚠️</span><div>هذا العرض ساري لمدة <strong id="paperValidityDays">—</strong> يوماً من تاريخ الإصدار.</div></div>
+        <div class="paper-stamp-area">
+          <div class="stamp-box"><div class="stamp-label">توقيع مُقدِّم العرض</div><img id="paperStampImg" style="max-height:75px;max-width:140px;display:none;" src="" alt="ختم"/><div id="paperStampPlaceholder" class="stamp-placeholder">لم يُرفع ختم</div></div>
+          <div class="stamp-box"><div class="stamp-label">توقيع العميل</div><div class="stamp-placeholder">____________________</div></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:16px;border-top:1px solid var(--border);padding-top:12px;text-align:center;">متوافق مع ZATCA · عرض أسعار وليس فاتورة ضريبية رسمية</div>
+      </div>
+      <div class="paper-footer">ProposalIQ · ARKANE AI · <span id="paperFooterCompany"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="pageAdmin">
+  <div class="admin-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <h2 style="font-size:1.1rem;font-weight:800;">🔐 لوحة الإدارة</h2>
+      <button class="btn btn-ghost btn-sm" onclick="showPage('pageHome')">← الرئيسية</button>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ إنشاء رمز تفعيل</div>
+      <div class="form-group"><label>نوع الباقة</label>
+        <select id="tokenPlan">
+          <option value="basic_monthly">أساسي شهري — 240 ريال</option>
+          <option value="basic_yearly">أساسي سنوي — 1,999 ريال</option>
+          <option value="advanced_monthly">متقدم شهري — 600 ريال</option>
+          <option value="advanced_yearly">متقدم سنوي — 4,999 ريال</option>
+          <option value="enterprise_yearly">مؤسسي سنوي — 18,000 ريال</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="generateToken()">أنشئ رمز</button>
+      <div id="newTokenResult" style="display:none;margin-top:12px;">
+        <div class="alert alert-success">✅ رمز جاهز</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap;">
+          <code id="newTokenCode" style="background:var(--bg);padding:6px 11px;border-radius:5px;font-size:.95rem;flex:1;font-family:monospace;"></code>
+          <button class="btn btn-ghost btn-sm" onclick="copyToken()">نسخ</button>
+          <a id="tokenWaLink" class="btn btn-wa btn-sm" href="#" target="_blank">📱 واتساب</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 سجل الرموز</div>
+      <div id="tokensList"><div style="text-align:center;padding:16px;color:var(--muted);">جارٍ التحميل...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEGAL -->
+<div class="page" id="pageTerms"><div class="legal-wrap"><button class="btn btn-ghost btn-sm" style="margin-bottom:14px;" onclick="showPage('pageHome')">← رجوع</button><h1 style="font-size:1.2rem;font-weight:800;margin-bottom:4px;">شروط الاستخدام</h1><h3>1. تعريف الخدمة</h3><p>ProposalIQ أداة لتوليد المستندات التجارية وليست مزوداً لخدمات قانونية أو مالية.</p><h3>2. مسؤولية المستخدم</h3><p>مراجعة المحتوى قبل الإرسال والامتثال للأنظمة السعودية.</p><h3>3. إخلاء المسؤولية</h3><p>المستندات عروض أسعار وليست فواتير ضريبية رسمية بموجب ZATCA.</p></div></div>
+<div class="page" id="pagePrivacy"><div class="legal-wrap"><button class="btn btn-ghost btn-sm" style="margin-bottom:14px;" onclick="showPage('pageHome')">← رجوع</button><h1 style="font-size:1.2rem;font-weight:800;margin-bottom:4px;">سياسة الخصوصية</h1><h3>1. لا نستخدم بياناتك للتدريب</h3><p>نصوصك وأسعارك لا تُستخدم لتدريب أي نموذج ذكاء اصطناعي.</p><h3>2. تشفير AES-256</h3><p>أعلى معايير التشفير لحماية بياناتك. متوافق مع PDPL 2021.</p></div></div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="modal-title">🔑 تسجيل الدخول</div>
+    <button class="btn btn-google btn-full" onclick="signInWithGoogle()" style="margin-bottom:4px;font-size:.86rem;padding:10px;">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.31"/></svg>
+      الدخول بحساب Google
+    </button>
+    <div class="or-divider">أو</div>
+    <div class="form-group"><label>البريد الإلكتروني</label><input id="loginEmail" type="email" placeholder="you@company.com"/></div>
+    <div class="form-group"><label>كلمة المرور</label><input id="loginPassword" type="password" placeholder="••••••"/>
+      <div style="text-align:left;margin-top:4px;"><a style="font-size:.74rem;color:var(--primary);cursor:pointer;" onclick="closeModal('loginModal');showModal('forgotModal')">نسيت كلمة المرور؟</a></div>
+    </div>
+    <div id="loginError" class="alert alert-warn" style="display:none;"></div>
+    <button class="btn btn-primary btn-full" id="btnLogin" onclick="doLogin()">دخول</button>
+    <div style="text-align:center;margin-top:10px;font-size:.82rem;color:var(--muted);">ما عندك حساب؟ <a style="color:var(--primary);cursor:pointer;" onclick="closeModal('loginModal');showModal('registerModal')">سجّل الآن</a></div>
+    <div style="text-align:center;margin-top:6px;"><a style="font-size:.74rem;color:var(--muted);cursor:pointer;" onclick="closeModal('loginModal');showModal('adminModal')">🔐 دخول الإدارة</a></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('forgotModal')">✕</button>
+    <div class="modal-title">🔓 استعادة كلمة المرور</div>
+    <div class="form-group"><label>البريد الإلكتروني</label><input id="forgotEmail" type="email" placeholder="you@company.com"/></div>
+    <div id="forgotError" class="alert alert-warn" style="display:none;"></div>
+    <div id="forgotResult" class="alert alert-success" style="display:none;"></div>
+    <button class="btn btn-primary btn-full" onclick="doForgotPassword()">إرسال رابط الاسترداد</button>
+    <div style="text-align:center;margin-top:10px;"><a style="font-size:.8rem;color:var(--primary);cursor:pointer;" onclick="closeModal('forgotModal');showModal('loginModal')">← رجوع للدخول</a></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+    <div class="modal-title">👤 إنشاء حساب جديد</div>
+    <div class="alert alert-info" style="font-size:.79rem;">3 عروض مجاناً — بدون بطاقة</div>
+    <button class="btn btn-google btn-full" onclick="signInWithGoogle()" style="margin-bottom:4px;font-size:.86rem;padding:10px;">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.31"/></svg>
+      التسجيل بحساب Google
+    </button>
+    <div class="or-divider">أو بالإيميل</div>
+    <div class="form-group">
+      <label>نوع الحساب</label>
+      <div class="role-toggle">
+        <button class="role-btn active-manager" id="roleBtnManager" onclick="selectRole('manager')">👔 مدير شركة</button>
+        <button class="role-btn" id="roleBtnAgent" onclick="selectRole('agent')">🧑‍💼 مندوب مبيعات</button>
+      </div>
+      <input type="hidden" id="selectedRole" value="manager"/>
+    </div>
+    <div class="form-group"><label>اسم الشركة *</label><input id="regCompany" placeholder="شركة ARKANE للتقنية"/></div>
+    <div class="form-group"><label>البريد الإلكتروني *</label><input id="regEmail" type="email" placeholder="you@company.com"/></div>
+    <div class="form-group">
+      <label>كلمة المرور *</label>
+      <input id="regPassword" type="password" placeholder="8 أحرف على الأقل" oninput="checkPwStrength(this.value)"/>
+      <div class="pw-strength" id="pwBar"></div>
+      <div id="pwLabel" style="font-size:.7rem;margin-top:2px;color:var(--muted);"></div>
+    </div>
+    <div id="companyCodeField" style="display:none;" class="form-group">
+      <label>كود الشركة *</label>
+      <input id="regCompanyCode" placeholder="CO-XXXXXX" style="letter-spacing:2px;text-align:center;font-weight:700;"/>
+      <div style="font-size:.73rem;color:var(--muted);margin-top:3px;">اطلبه من مدير شركتك</div>
+    </div>
+    <div id="regError" class="alert alert-warn" style="display:none;"></div>
+    <button class="btn btn-primary btn-full" id="btnRegister" onclick="doRegister()">إنشاء الحساب</button>
+    <div style="text-align:center;margin-top:8px;font-size:.82rem;color:var(--muted);">لديّ حساب؟ <a style="color:var(--primary);cursor:pointer;" onclick="closeModal('registerModal');showModal('loginModal')">دخول</a></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('adminModal')">✕</button>
+    <div class="modal-title">🔐 لوحة الإدارة</div>
+    <div class="form-group"><label>كلمة المرور</label><input id="adminPassword" type="password" placeholder="••••••" onkeypress="if(event.key==='Enter')doAdminLogin()"/></div>
+    <div id="adminError" class="alert alert-warn" style="display:none;"></div>
+    <button class="btn btn-primary btn-full" onclick="doAdminLogin()">دخول</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="activateModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('activateModal')">✕</button>
+    <div class="modal-title">🔑 تفعيل الاشتراك</div>
+    <div class="form-group"><input id="activationCode" placeholder="PQ-XXXX-XXXX" style="text-align:center;font-size:1rem;letter-spacing:2px;"/></div>
+    <div id="activateError" class="alert alert-warn" style="display:none;"></div>
+    <div id="activateSuccess" class="alert alert-success" style="display:none;">🎉 تم تفعيل الاشتراك!</div>
+    <button class="btn btn-primary btn-full" onclick="doActivate()">✓ تفعيل</button>
+    <a href="https://wa.me/966565833185" target="_blank" class="btn btn-wa btn-full" style="margin-top:7px;">📱 ما عندي رمز — تواصل معنا</a>
+  </div>
+</div>
+
+<div class="modal-overlay" id="aiModal">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:2.2rem;margin-bottom:12px;animation:spin 1.5s linear infinite;display:inline-block;">⚡</div>
+    <div style="font-weight:700;font-size:.95rem;margin-bottom:5px;">الذكاء الاصطناعي يُولّد العرض...</div>
+    <div style="color:var(--muted);font-size:.82rem;" id="aiLoadingStep">جارٍ التحليل...</div>
+  </div>
+</div>
+
+<!-- GOOGLE ROLE MODAL -->
+<div class="modal-overlay" id="googleRoleModal">
+  <div class="modal">
+    <div class="modal-title">👤 اختر نوع حسابك</div>
+    <div class="form-group"><label>اسم الشركة *</label><input id="googleCompany" placeholder="شركة ARKANE للتقنية"/></div>
+    <div class="form-group">
+      <label>نوع الحساب</label>
+      <div class="role-toggle">
+        <button class="role-btn active-manager" id="gRoleBtnManager" onclick="selectGoogleRole('manager')">👔 مدير شركة</button>
+        <button class="role-btn" id="gRoleBtnAgent" onclick="selectGoogleRole('agent')">🧑‍💼 مندوب مبيعات</button>
+      </div>
+      <input type="hidden" id="googleSelectedRole" value="manager"/>
+    </div>
+    <div id="googleCodeField" style="display:none;" class="form-group">
+      <label>كود الشركة *</label>
+      <input id="googleCompanyCode" placeholder="CO-XXXXXX" style="letter-spacing:2px;text-align:center;font-weight:700;"/>
+    </div>
+    <div id="googleRoleError" class="alert alert-warn" style="display:none;"></div>
+    <button class="btn btn-primary btn-full" onclick="completeGoogleSignIn()">متابعة</button>
+  </div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, query, where, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyChxttvld06MmlSTD4JB11mYZNA06AP4T8",
+  authDomain: "proposaliq-97d80.firebaseapp.com",
+  projectId: "proposaliq-97d80",
+  storageBucket: "proposaliq-97d80.firebasestorage.app",
+  messagingSenderId: "183384951638",
+  appId: "1:183384951638:web:8c0d6ce87c0c22f14064f7",
+  measurementId: "G-HTD6YLRY8X"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ===== GLOBAL STATE =====
+const PLAN_CONFIG = {
+  basic_monthly:   {name:'أساسي شهري',  quota:30,  months:1},
+  basic_yearly:    {name:'أساسي سنوي',  quota:360, months:12},
+  advanced_monthly:{name:'متقدم شهري',  quota:150, months:1},
+  advanced_yearly: {name:'متقدم سنوي',  quota:1800,months:12},
+  enterprise_yearly:{name:'مؤسسي سنوي',quota:99999,months:12}
+};
+const WA = '966565833185';
+const ADMIN_PASS = 'ARKANE2026';
+
+let currentUser = null;
+let currentProfile = null;
+let currentCompany = null;
+let currentProposalId = null;
+let logoDataURL = null;
+let stampDataURL = null;
+let pendingGoogleUser = null;
+
+// expose to window
+window._fb = {auth, db, googleProvider, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, doc, setDoc, getDoc, collection, addDoc, updateDoc, query, where, getDocs, orderBy, serverTimestamp};
+window._state = {currentUser:null, currentProfile:null, currentCompany:null, currentProposalId:null, logoDataURL:null, stampDataURL:null, pendingGoogleUser:null, PLAN_CONFIG, WA, ADMIN_PASS};
+
+// ===== HELPERS =====
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const isValidEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const fmt = n => Math.round(n||0).toLocaleString('ar-SA');
+
+function setLoading(id, on) {
+  const el = document.getElementById(id);
+  if(el) el.disabled = on;
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(()=>el.style.display='none', 4500);
+}
+
+// ===== NAV =====
+window.showPage = function(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='pageManagerDash') refreshManagerDash();
+  if(id==='pageAgentDash') refreshAgentDash();
+  if(id==='pageAdmin') loadAdminTokens();
+  if(id==='pageNewProposal') {
+    const tbody = document.getElementById('itemsBody');
+    if(tbody && tbody.children.length===0){addItem();addItem();addItem();}
+  }
+};
+window.showModal = id => document.getElementById(id)?.classList.add('open');
+window.closeModal = id => document.getElementById(id)?.classList.remove('open');
+window.goToDashboard = function() {
+  if(!currentUser) return showPage('pageHome');
+  showPage(currentProfile?.role==='manager'?'pageManagerDash':'pageAgentDash');
+};
+
+// ===== ROLE SELECT =====
+window.selectRole = function(role) {
+  document.getElementById('selectedRole').value=role;
+  document.getElementById('roleBtnManager').className='role-btn'+(role==='manager'?' active-manager':'');
+  document.getElementById('roleBtnAgent').className='role-btn'+(role==='agent'?' active-agent':'');
+  document.getElementById('companyCodeField').style.display=role==='agent'?'block':'none';
+};
+window.selectGoogleRole = function(role) {
+  document.getElementById('googleSelectedRole').value=role;
+  document.getElementById('gRoleBtnManager').className='role-btn'+(role==='manager'?' active-manager':'');
+  document.getElementById('gRoleBtnAgent').className='role-btn'+(role==='agent'?' active-agent':'');
+  document.getElementById('googleCodeField').style.display=role==='agent'?'block':'none';
+};
+window.checkPwStrength = function(pw) {
+  const bar=document.getElementById('pwBar');const lbl=document.getElementById('pwLabel');
+  if(!pw){bar.className='pw-strength';lbl.textContent='';return;}
+  let s=0;
+  if(pw.length>=8)s++;if(pw.length>=12)s++;
+  if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  if(s<=2){bar.className='pw-strength weak';lbl.textContent='⚠️ ضعيفة';lbl.style.color='var(--danger)';}
+  else if(s<=3){bar.className='pw-strength medium';lbl.textContent='⚡ متوسطة';lbl.style.color='var(--warning)';}
+  else{bar.className='pw-strength strong';lbl.textContent='✅ قوية';lbl.style.color='var(--success)';}
+};
+
+function genCompanyCode() {
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return 'CO-'+Array.from({length:6},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+
+// ===== AUTH FUNCTIONS =====
+window.signInWithGoogle = async function() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    // check if profile exists
+    const profDoc = await getDoc(doc(db,'profiles',user.uid));
+    if(profDoc.exists()) {
+      // existing user - login
+      closeModal('loginModal');
+      closeModal('registerModal');
+      await loadUserSession(user);
+    } else {
+      // new user - ask for role
+      pendingGoogleUser = user;
+      closeModal('loginModal');
+      closeModal('registerModal');
+      showModal('googleRoleModal');
+    }
+  } catch(e) {
+    alert('خطأ في تسجيل الدخول بـ Google: ' + e.message);
+  }
+};
+
+window.completeGoogleSignIn = async function() {
+  if(!pendingGoogleUser) return;
+  const company = document.getElementById('googleCompany').value.trim();
+  const role = document.getElementById('googleSelectedRole').value;
+  const code = document.getElementById('googleCompanyCode').value.trim().toUpperCase();
+  if(!company) {showErr('googleRoleError','أدخل اسم الشركة');return;}
+  if(role==='agent'&&!code){showErr('googleRoleError','أدخل كود الشركة');return;}
+
+  let companyId = null;
+  if(role==='agent'){
+    const q = query(collection(db,'companies'),where('code','==',code));
+    const snap = await getDocs(q);
+    if(snap.empty){showErr('googleRoleError','كود الشركة غير صحيح');return;}
+    companyId = snap.docs[0].id;
+  }
+
+  const uid = pendingGoogleUser.uid;
+  if(role==='manager'){
+    const coCode = genCompanyCode();
+    const coRef = await addDoc(collection(db,'companies'),{name:company,code:coCode,managerId:uid,createdAt:serverTimestamp()});
+    companyId = coRef.id;
+    await updateDoc(doc(db,'companies',companyId),{managerId:uid});
+  }
+
+  await setDoc(doc(db,'profiles',uid),{
+    uid, email:pendingGoogleUser.email, company, role,
+    companyId: companyId||null, plan:'free', quota:0, quotaUsed:0,
+    expiry:null, createdAt:serverTimestamp()
+  });
+
+  closeModal('googleRoleModal');
+  await loadUserSession(pendingGoogleUser);
+  pendingGoogleUser = null;
+};
+
+window.doRegister = async function() {
+  const role=document.getElementById('selectedRole').value;
+  const company=document.getElementById('regCompany').value.trim();
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('regPassword').value;
+  const code=document.getElementById('regCompanyCode').value.trim().toUpperCase();
+
+  if(!company||!email||!pass){showErr('regError','يرجى ملء جميع الحقول');return;}
+  if(!isValidEmail(email)){showErr('regError','صيغة البريد الإلكتروني غير صحيحة');return;}
+  if(pass.length<8){showErr('regError','كلمة المرور 8 أحرف على الأقل');return;}
+  if(role==='agent'&&!code){showErr('regError','أدخل كود الشركة من مديرك');return;}
+
+  setLoading('btnRegister',true);
+
+  let companyId = null;
+  if(role==='agent'){
+    const q=query(collection(db,'companies'),where('code','==',code));
+    const snap=await getDocs(q);
+    if(snap.empty){showErr('regError','كود الشركة غير صحيح');setLoading('btnRegister',false);return;}
+    companyId=snap.docs[0].id;
+  }
+
+  try {
+    const {user}=await createUserWithEmailAndPassword(auth,email,pass);
+    if(role==='manager'){
+      const coCode=genCompanyCode();
+      const coRef=await addDoc(collection(db,'companies'),{name:company,code:coCode,managerId:user.uid,createdAt:serverTimestamp()});
+      companyId=coRef.id;
+    }
+    await setDoc(doc(db,'profiles',user.uid),{uid:user.uid,email,company,role,companyId:companyId||null,plan:'free',quota:0,quotaUsed:0,expiry:null,createdAt:serverTimestamp()});
+    closeModal('registerModal');
+    await loadUserSession(user);
+  } catch(e) {
+    const msgs={'auth/email-already-in-use':'هذا البريد مسجّل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة جداً'};
+    showErr('regError',msgs[e.code]||e.message);
+  }
+  setLoading('btnRegister',false);
+};
+
+window.doLogin = async function() {
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('loginPassword').value;
+  if(!email||!pass){showErr('loginError','أدخل البريد وكلمة المرور');return;}
+  setLoading('btnLogin',true);
+  try {
+    const {user}=await signInWithEmailAndPassword(auth,email,pass);
+    closeModal('loginModal');
+    await loadUserSession(user);
+  } catch(e) {
+    showErr('loginError','البريد أو كلمة المرور غير صحيحة');
+  }
+  setLoading('btnLogin',false);
+};
+
+window.doForgotPassword = async function() {
+  const email=document.getElementById('forgotEmail').value.trim();
+  if(!email){showErr('forgotError','أدخل بريدك الإلكتروني');return;}
+  try {
+    await sendPasswordResetEmail(auth,email);
+    document.getElementById('forgotResult').style.display='block';
+    document.getElementById('forgotResult').textContent='✅ تم إرسال رابط الاسترداد لبريدك';
+  } catch(e) {
+    document.getElementById('forgotResult').style.display='block';
+    document.getElementById('forgotResult').textContent='إذا كان البريد مسجّلاً ستصلك رسالة. تواصل معنا عبر واتساب إذا احتجت مساعدة.';
+  }
+};
+
+window.logout = async function() {
+  await signOut(auth);
+  currentUser=null;currentProfile=null;currentCompany=null;
+  updateNavBar(false);
+  showPage('pageHome');
+};
+
+async function loadUserSession(user) {
+  currentUser=user;
+  let profSnap;
+  try {
+    profSnap=await getDoc(doc(db,'profiles',user.uid));
+  } catch(e) {
+    console.error('Firestore error:', e);
+    updateNavBar(true);
+    goToDashboard();
+    return;
+  }
+  currentProfile=profSnap.exists()?profSnap.data():null;
+  if(currentProfile?.companyId){
+    const coSnap=await getDoc(doc(db,'companies',currentProfile.companyId));
+    currentCompany=coSnap.exists()?{id:coSnap.id,...coSnap.data()}:null;
+  }
+  updateNavBar(true);
+  goToDashboard();
+}
+
+function updateNavBar(loggedIn) {
+  const nav=document.getElementById('navActions');
+  if(!loggedIn){
+    nav.innerHTML=`<button class="btn btn-outline btn-sm" onclick="showModal('loginModal')">دخول</button><button class="btn btn-primary btn-sm" onclick="showModal('registerModal')">ابدأ مجاناً</button>`;
+    return;
+  }
+  const rb=currentProfile?.role==='manager'?'<span class="badge badge-manager">👔 مدير</span>':'<span class="badge badge-agent">🧑‍💼 مندوب</span>';
+  const nb=currentProfile?.role==='agent'?`<button class="btn btn-primary btn-sm" onclick="showPage('pageNewProposal')">+عرض</button>`:'';
+  nav.innerHTML=`${rb}<span style="color:rgba(255,255,255,.7);font-size:.76rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(currentProfile?.company||currentUser?.email||'')}</span>${nb}<button class="btn btn-outline btn-sm" onclick="logout()">خروج</button>`;
+}
+
+// ===== AUTH STATE =====
+// [FIX] Timeout fallback - max 5 seconds loading
+const hideLoading = () => {
+  const ls = document.getElementById('loadingScreen');
+  if(ls) { ls.classList.add('hidden'); setTimeout(()=>ls.style.display='none',600); }
+};
+const loadingTimeout = setTimeout(hideLoading, 5000);
+
+onAuthStateChanged(auth, async user => {
+  clearTimeout(loadingTimeout);
+  try {
+    if(user) await loadUserSession(user);
+    else { currentUser=null;currentProfile=null;currentCompany=null;updateNavBar(false); }
+  } catch(e) {
+    console.error('Auth error:', e);
+    updateNavBar(false);
+  }
+  hideLoading();
+});
+
+// ===== MANAGER DASH =====
+async function refreshManagerDash() {
+  if(!currentUser||currentProfile?.role!=='manager') return;
+  const profSnap=await getDoc(doc(db,'profiles',currentUser.uid));
+  if(profSnap.exists()) currentProfile=profSnap.data();
+  document.getElementById('mgrName').textContent=esc(currentProfile?.company||'');
+  document.getElementById('mgrCompanyCode').textContent=currentCompany?.code||'——————';
+
+  const isActive=currentProfile?.plan&&currentProfile.plan!=='free';
+  const cfg=isActive?PLAN_CONFIG[currentProfile.plan]:null;
+  const si=document.getElementById('mgrSubInfo');
+  if(isActive&&cfg){si.style.display='flex';document.getElementById('mgrSubPlan').textContent=cfg.name;document.getElementById('mgrSubQuota').textContent=Math.max(0,(currentProfile.quota||0)-(currentProfile.quotaUsed||0))+' عرض';}
+  else si.style.display='none';
+  renderActivateSection('mgrActivateSection',isActive);
+
+  // props
+  const propsQ=query(collection(db,'proposals'),where('companyId','==',currentCompany?.id||''));
+  const propsSnap=await getDocs(propsQ);
+  const props=propsSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+  // agents
+  const agentsQ=query(collection(db,'profiles'),where('companyId','==',currentCompany?.id||''),where('role','==','agent'));
+  const agentsSnap=await getDocs(agentsQ);
+  const agents=agentsSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+  document.getElementById('mgrTotalAgents').textContent=agents.length;
+  document.getElementById('mgrTotalProps').textContent=props.length;
+  document.getElementById('mgrSentProps').textContent=props.filter(p=>p.status==='sent').length;
+  document.getElementById('mgrAcceptedProps').textContent=props.filter(p=>p.status==='accepted').length;
+
+  // pending approvals
+  const pending=props.filter(p=>p.status==='pending');
+  document.getElementById('mgrPendingCount').textContent=pending.length>0?pending.length:'';
+  const al=document.getElementById('mgrApprovalsList');al.innerHTML='';
+  if(!pending.length){al.innerHTML='<div style="text-align:center;padding:14px;color:var(--muted);font-size:.82rem;">لا توجد عروض تنتظر الاعتماد ✅</div>';}
+  else pending.forEach(p=>{
+    const div=document.createElement('div');div.className='approval-item';
+    div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;"><div><div style="font-weight:700;font-size:.88rem;">${esc(p.subject)}</div><div style="font-size:.76rem;color:var(--muted);">${esc(p.clientCompany)} · ${esc(p.ref||'')}</div></div><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="openProposal('${p.id}')">👁️</button><button class="btn btn-success btn-sm" onclick="approveProposal('${p.id}')">✅</button><button class="btn btn-danger btn-sm" onclick="rejectProposal('${p.id}')">❌</button></div></div><div style="font-size:.78rem;color:var(--muted);">الإجمالي: ${fmt(p.total)} ريال · ${esc(p.date||'')}</div>`;
+    al.appendChild(div);
+  });
+
+  // agents list
+  const al2=document.getElementById('mgrAgentsList');al2.innerHTML='';
+  if(!agents.length){al2.innerHTML='<div style="text-align:center;padding:16px;color:var(--muted);font-size:.82rem;">لا يوجد مندوبون — شاركهم كود الشركة 👆</div>';}
+  else agents.forEach(ag=>{
+    const agProps=props.filter(p=>p.userId===ag.uid);
+    const div=document.createElement('div');
+    div.style.cssText='background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;';
+    div.innerHTML=`<div><div style="font-weight:700;font-size:.88rem;">🧑‍💼 ${esc(ag.email)}</div><div style="font-size:.76rem;color:var(--muted);">عروض: ${agProps.length}</div></div><span class="status-badge s-sent">${agProps.filter(p=>p.status==='sent').length} مُرسَل</span>`;
+    al2.appendChild(div);
+  });
+
+  // all props
+  const ap=document.getElementById('mgrAllProposals');ap.innerHTML='';
+  if(!props.length){ap.innerHTML='<div class="empty-state"><div class="empty-icon">📄</div><div>لا توجد عروض بعد</div></div>';return;}
+  const list=document.createElement('div');list.className='proposal-list';
+  props.slice().reverse().forEach(p=>{
+    const st=statusMap()[p.status]||statusMap().draft;
+    const item=document.createElement('div');item.className='proposal-item';item.onclick=()=>openProposal(p.id);
+    item.innerHTML=`<div><div class="prop-title">${esc(p.subject)}</div><div class="prop-client">${esc(p.clientCompany)} · ${esc(p.ref||'')}</div></div><div style="display:flex;align-items:center;gap:7px;"><span class="prop-amount">${fmt(p.total)} ريال</span><span class="status-badge ${st[1]}">${st[0]}</span></div>`;
+    list.appendChild(item);
+  });
+  ap.appendChild(list);
+}
+window.refreshManagerDash = refreshManagerDash;
+
+window.approveProposal = async function(id) {
+  await updateDoc(doc(db,'proposals',id),{status:'sent',approvedBy:currentUser.uid,approvedAt:serverTimestamp()});
+  alert('✅ تم اعتماد العرض');refreshManagerDash();
+};
+window.rejectProposal = async function(id) {
+  const reason=prompt('سبب الرفض (اختياري):')||'';
+  await updateDoc(doc(db,'proposals',id),{status:'rejected',rejectedBy:currentUser.uid,rejectedAt:serverTimestamp(),rejectReason:reason});
+  alert('❌ تم رفض العرض');refreshManagerDash();
+};
+window.copyCompanyCode = function() {
+  const code=currentCompany?.code;if(!code) return;
+  navigator.clipboard?.writeText(code).then(()=>alert('✅ تم نسخ كود الشركة:\n'+code)).catch(()=>prompt('كود الشركة:',code));
+};
+
+// ===== AGENT DASH =====
+async function refreshAgentDash() {
+  if(!currentUser) return;
+  const profSnap=await getDoc(doc(db,'profiles',currentUser.uid));
+  if(profSnap.exists()) currentProfile=profSnap.data();
+  document.getElementById('agentName').textContent=esc(currentProfile?.company||currentProfile?.email||'');
+  document.getElementById('agentCompanyLabel').textContent=currentCompany?`شركة: ${currentCompany.name}`:'مستخدم مستقل';
+
+  const isActive=currentProfile?.plan&&currentProfile.plan!=='free';
+  const cfg=isActive?PLAN_CONFIG[currentProfile.plan]:null;
+  const si=document.getElementById('agentSubInfo');
+  if(isActive&&cfg){si.style.display='flex';document.getElementById('agentSubPlan').textContent=cfg.name;document.getElementById('agentSubQuota').textContent=Math.max(0,(currentProfile.quota||0)-(currentProfile.quotaUsed||0))+' عرض';}
+  else si.style.display='none';
+  renderActivateSection('agentActivateSection',isActive);
+
+  const propsQ=query(collection(db,'proposals'),where('userId','==',currentUser.uid));
+  const propsSnap=await getDocs(propsQ);
+  const props=propsSnap.docs.map(d=>({id:d.id,...d.data()}));
+  props.sort((a,b)=>((b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)));
+
+  // rejections
+  const rd=document.getElementById('agentRejections');rd.innerHTML='';
+  props.filter(p=>p.status==='rejected').forEach(p=>{
+    const div=document.createElement('div');div.className='alert alert-danger';
+    div.textContent=`❌ تم رفض عرضك "${p.subject}"${p.rejectReason?' — '+p.rejectReason:''}`;
+    rd.appendChild(div);
+  });
+
+  document.getElementById('agTotalProps').textContent=props.length;
+  document.getElementById('agPending').textContent=props.filter(p=>p.status==='pending').length;
+  document.getElementById('agSent').textContent=props.filter(p=>p.status==='sent').length;
+  document.getElementById('agAccepted').textContent=props.filter(p=>p.status==='accepted').length;
+
+  const container=document.getElementById('agentProposalList');container.innerHTML='';
+  if(!props.length){container.innerHTML='<div class="empty-state"><div class="empty-icon">📄</div><div>لا يوجد عروض بعد</div></div>';return;}
+  const list=document.createElement('div');list.className='proposal-list';
+  props.forEach(p=>{
+    const st=statusMap()[p.status]||statusMap().draft;
+    const item=document.createElement('div');item.className='proposal-item';item.onclick=()=>openProposal(p.id);
+    item.innerHTML=`<div><div class="prop-title">${esc(p.subject)}</div><div class="prop-client">${esc(p.clientCompany)} · ${esc(p.ref||'')} · 👁️ ${p.viewCount||0}</div></div><div style="display:flex;align-items:center;gap:7px;"><span class="prop-amount">${fmt(p.total)} ريال</span><span class="status-badge ${st[1]}">${st[0]}</span></div>`;
+    list.appendChild(item);
+  });
+  container.appendChild(list);
+}
+window.refreshAgentDash = refreshAgentDash;
+
+function renderActivateSection(sectionId, isActive) {
+  const sec=document.getElementById(sectionId);if(!sec) return;
+  if(isActive){sec.innerHTML='';return;}
+  sec.innerHTML=`<div style="display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px;"><div style="flex:1;min-width:160px;"><label style="font-size:.76rem;font-weight:600;display:block;margin-bottom:4px;">🔑 رمز التفعيل</label><input id="${sectionId}_code" placeholder="PQ-XXXX-XXXX" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:.84rem;letter-spacing:1px;"/></div><button class="btn btn-primary btn-sm" onclick="doActivateDash('${sectionId}_code','${sectionId}_err')">✓ تفعيل</button></div><div id="${sectionId}_err" class="alert alert-warn" style="display:none;"></div>`;
+}
+
+// ===== ITEMS =====
+window.addItem = function(name='',qty=1,price=0) {
+  const tbody=document.getElementById('itemsBody');
+  const row=document.createElement('tr');
+  row.innerHTML=`<td><input placeholder="اسم البند" value="${esc(name)}" oninput="recalcTotals()"/></td><td><input type="number" min="1" value="${qty}" style="width:50px;" oninput="recalcTotals()"/></td><td><input type="number" min="0" value="${price}" oninput="recalcTotals()"/></td><td><button class="del-row" onclick="this.closest('tr').remove();recalcTotals()">✕</button></td>`;
+  tbody.appendChild(row);recalcTotals();
+};
+window.recalcTotals = function() {
+  let sub=0;
+  document.querySelectorAll('#itemsBody tr').forEach(r=>{const i=r.querySelectorAll('input');sub+=(parseFloat(i[1]?.value)||0)*(parseFloat(i[2]?.value)||0);});
+  const disc=parseFloat(document.getElementById('propDiscount').value)||0;
+  const after=Math.max(0,sub-disc);const vat=after*0.15;const total=after+vat;
+  document.getElementById('totSubtotal').textContent=fmt(sub)+' ريال';
+  document.getElementById('totDiscount').textContent='- '+fmt(disc)+' ريال';
+  document.getElementById('totAfterDiscount').textContent=fmt(after)+' ريال';
+  document.getElementById('totVAT').textContent=fmt(vat)+' ريال';
+  document.getElementById('totFinal').textContent=fmt(total)+' ريال';
+  return {subtotal:sub,discount:disc,afterDiscount:after,vat,total};
+};
+
+window.handleLogoUpload = function(e) {
+  const f=e.target.files[0];if(!f||!f.type.startsWith('image/')) return;
+  const r=new FileReader();r.onload=ev=>{logoDataURL=ev.target.result;const p=document.getElementById('logoPreview');p.src=logoDataURL;p.style.display='block';document.getElementById('logoPlaceholderText').style.display='none';document.getElementById('removeLogoBtn').style.display='inline-flex';};r.readAsDataURL(f);
+};
+window.removeLogo = function(){logoDataURL=null;document.getElementById('logoPreview').style.display='none';document.getElementById('logoPlaceholderText').style.display='block';document.getElementById('removeLogoBtn').style.display='none';};
+window.handleStampUpload = function(e) {
+  const f=e.target.files[0];if(!f||!f.type.startsWith('image/')) return;
+  const r=new FileReader();r.onload=ev=>{stampDataURL=ev.target.result;const p=document.getElementById('stampPreview');p.src=stampDataURL;p.style.display='block';document.getElementById('stampPlaceholderText').style.display='none';document.getElementById('removeStampBtn').style.display='inline-flex';};r.readAsDataURL(f);
+};
+window.removeStamp = function(){stampDataURL=null;document.getElementById('stampPreview').style.display='none';document.getElementById('stampPlaceholderText').style.display='block';document.getElementById('removeStampBtn').style.display='none';};
+
+// ===== QUOTA =====
+async function checkQuota() {
+  if(!currentProfile) return true;
+  if(currentProfile.plan==='free') {
+    const q=query(collection(db,'proposals'),where('userId','==',currentUser.uid));
+    const snap=await getDocs(q);
+    if(snap.size>=3){alert('وصلت للحد الأقصى للباقة المجانية (3 عروض).\nيرجى تفعيل اشتراك للمتابعة.');return false;}
+    return true;
+  }
+  if(Math.max(0,(currentProfile.quota||0)-(currentProfile.quotaUsed||0))<=0){alert('انتهت العروض المتاحة في باقتك.');return false;}
+  return true;
+}
+async function deductQuota() {
+  if(!currentProfile||currentProfile.plan==='free') return;
+  await updateDoc(doc(db,'profiles',currentUser.uid),{quotaUsed:(currentProfile.quotaUsed||0)+1});
+}
+
+// ===== SAVE PROPOSAL =====
+window.saveProposal = async function(status) {
+  if(!currentUser){showModal('loginModal');return;}
+  if(!await checkQuota()) return;
+  const tots=recalcTotals();
+  const subject=document.getElementById('propSubject').value.trim();
+  const myCompany=document.getElementById('myCompany').value.trim();
+  const clientCompany=document.getElementById('clientCompany').value.trim();
+  if(!myCompany||!clientCompany||!subject){alert('يرجى ملء: اسم شركتك، اسم العميل، موضوع العرض');return;}
+
+  const items=[];
+  document.querySelectorAll('#itemsBody tr').forEach((row,i)=>{
+    const inp=row.querySelectorAll('input');const name=inp[0]?.value.trim();
+    if(name)items.push({name,qty:parseFloat(inp[1]?.value)||1,price:parseFloat(inp[2]?.value)||0,total:(parseFloat(inp[1]?.value)||1)*(parseFloat(inp[2]?.value)||0),sortOrder:i});
+  });
+
+  const propsQ=query(collection(db,'proposals'),where('userId','==',currentUser.uid));
+  const snap=await getDocs(propsQ);
+  const ref='PQ-'+new Date().getFullYear()+'-'+String(snap.size+1).padStart(3,'0');
+
+  const data={
+    userId:currentUser.uid,companyId:currentProfile?.companyId||null,ref,
+    date:new Date().toLocaleDateString('ar-SA'),
+    myCompany,myTitle:document.getElementById('myTitle').value.trim(),
+    myCR:document.getElementById('myCR').value.trim(),myVAT:document.getElementById('myVAT').value.trim(),
+    clientCompany,clientContact:document.getElementById('clientContact').value.trim(),
+    clientCity:document.getElementById('clientCity').value,clientEmail:document.getElementById('clientEmail').value.trim(),
+    subject,sector:document.getElementById('propSector').value,
+    validity:parseInt(document.getElementById('propValidity').value)||30,
+    duration:document.getElementById('propDuration').value.trim(),
+    paymentTerms:document.getElementById('propPaymentTerms').value,
+    notes:document.getElementById('propNotes').value.trim(),
+    aiText:'',logoData:logoDataURL||null,stampData:stampDataURL||null,
+    status,items,...tots,viewCount:0,createdAt:serverTimestamp()
+  };
+
+  const docRef=await addDoc(collection(db,'proposals'),data);
+  await deductQuota();
+  currentProposalId=docRef.id;
+  renderPreview({id:docRef.id,...data},items,'');
+  showPage('pagePreview');
+};
+
+// ===== AI GENERATION =====
+window.generateAI = async function() {
+  if(!currentUser){showModal('loginModal');return;}
+  if(!await checkQuota()) return;
+  const subject=document.getElementById('propSubject').value.trim();
+  const myCompany=document.getElementById('myCompany').value.trim();
+  const clientCompany=document.getElementById('clientCompany').value.trim();
+  if(!myCompany||!clientCompany||!subject){alert('يرجى ملء الحقول الإلزامية أولاً');return;}
+
+  showModal('aiModal');
+  const steps=['جارٍ التحليل...','تخصيص النص...','صياغة العرض...','مراجعة نهائية...'];
+  let si=0;const sEl=document.getElementById('aiLoadingStep');
+  const timer=setInterval(()=>{sEl.textContent=steps[si++%steps.length];},1200);
+
+  const tots=recalcTotals();
+  const items=[];
+  document.querySelectorAll('#itemsBody tr').forEach(row=>{
+    const inp=row.querySelectorAll('input');const name=inp[0]?.value.trim();
+    if(name)items.push({name,qty:parseFloat(inp[1]?.value)||1,price:parseFloat(inp[2]?.value)||0,total:(parseFloat(inp[1]?.value)||1)*(parseFloat(inp[2]?.value)||0)});
+  });
+
+  let aiText='';
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`أنت خبير في كتابة عروض الأسعار التجارية الاحترافية باللغة العربية الفصحى للسوق السعودية. اكتب نص عرض سعر احترافي:\n- مُقدِّم العرض: ${myCompany} (${document.getElementById('myTitle').value||'إدارة المبيعات'})\n- العميل: ${clientCompany} في ${document.getElementById('clientCity').value}\n- موضوع العرض: ${subject}\n- القطاع: ${document.getElementById('propSector').value}\n- مدة التنفيذ: ${document.getElementById('propDuration').value||'حسب الاتفاق'}\n- شروط الدفع: ${document.getElementById('propPaymentTerms').value}\n- الإجمالي شامل الضريبة: ${fmt(tots.total)} ريال\n- البنود: ${items.map(i=>i.name).join('، ')||'غير محدد'}\n- ملاحظات: ${document.getElementById('propNotes').value||'لا يوجد'}\nاكتب فقرات متواصلة احترافية. لا تستخدم عناوين أو نقاط.`}]})});
+    const result=await resp.json();
+    aiText=result.content?.[0]?.text||'';
+    if(!aiText) throw new Error('empty');
+  } catch(e) {
+    aiText=`بسم الله الرحمن الرحيم\n\nالسادة / ${clientCompany} المحترمون،\nالسلام عليكم ورحمة الله وبركاته،\n\nيسعد ${myCompany} أن تتقدم لكم بهذا العرض التقني والمالي المتكامل لتنفيذ مشروع "${subject}".\n\nأعددنا هذا العرض وفق أعلى معايير الجودة في قطاع ${document.getElementById('propSector').value}${document.getElementById('propDuration').value?'، مع الالتزام بالجدول الزمني البالغ '+document.getElementById('propDuration').value:''}.\n\nالإجمالي الكلي: ${fmt(tots.total)} ريال سعودي شامل ضريبة القيمة المضافة 15%.\n\nنتطلع إلى شرف التعاون معكم،\n${myCompany}`;
+  }
+
+  clearInterval(timer);closeModal('aiModal');
+
+  const propsQ=query(collection(db,'proposals'),where('userId','==',currentUser.uid));
+  const snap=await getDocs(propsQ);
+  const ref='PQ-'+new Date().getFullYear()+'-'+String(snap.size+1).padStart(3,'0');
+
+  const data={
+    userId:currentUser.uid,companyId:currentProfile?.companyId||null,ref,
+    date:new Date().toLocaleDateString('ar-SA'),
+    myCompany,myTitle:document.getElementById('myTitle').value.trim(),
+    myCR:document.getElementById('myCR').value.trim(),myVAT:document.getElementById('myVAT').value.trim(),
+    clientCompany,clientContact:document.getElementById('clientContact').value.trim(),
+    clientCity:document.getElementById('clientCity').value,clientEmail:document.getElementById('clientEmail').value.trim(),
+    subject,sector:document.getElementById('propSector').value,
+    validity:parseInt(document.getElementById('propValidity').value)||30,
+    duration:document.getElementById('propDuration').value.trim(),
+    paymentTerms:document.getElementById('propPaymentTerms').value,
+    notes:document.getElementById('propNotes').value.trim(),
+    aiText,logoData:logoDataURL||null,stampData:stampDataURL||null,
+    status:'draft',items,...tots,viewCount:0,createdAt:serverTimestamp()
+  };
+
+  const docRef=await addDoc(collection(db,'proposals'),data);
+  await deductQuota();
+  currentProposalId=docRef.id;
+  renderPreview({id:docRef.id,...data},items,aiText);
+  showPage('pagePreview');
+};
+
+// ===== OPEN PROPOSAL =====
+window.openProposal = async function(id) {
+  const snap=await getDoc(doc(db,'proposals',id));
+  if(!snap.exists()) return;
+  const p={id:snap.id,...snap.data()};
+  currentProposalId=id;
+  renderPreview(p,p.items||[],p.aiText||'');
+  showPage('pagePreview');
+};
+
+function renderPreview(p,items=[],aiText='') {
+  document.getElementById('fomoDays').textContent=p.validity||30;
+  const logo=document.getElementById('paperLogoImg');
+  if(p.logoData){logo.src=p.logoData;logo.style.display='block';}else logo.style.display='none';
+  document.getElementById('paperCompanyName').textContent=p.myCompany||'ProposalIQ';
+  document.getElementById('paperCompanyTitle').textContent=p.myTitle||'';
+  document.getElementById('paperRef').textContent=p.ref||'PQ-2026-001';
+  document.getElementById('paperDate').textContent='التاريخ: '+(p.date||'—');
+  document.getElementById('paperValidity2').textContent='الصلاحية: '+(p.validity||30)+' يوم';
+  document.getElementById('partyFromName').textContent=p.myCompany||'—';
+  document.getElementById('partyFromTitle').textContent=p.myTitle||'';
+  document.getElementById('partyFromCR').textContent=p.myCR?'س.ت: '+p.myCR:'';
+  document.getElementById('partyFromVAT').textContent=p.myVAT?'VAT: '+p.myVAT:'';
+  document.getElementById('partyToName').textContent=p.clientCompany||'—';
+  document.getElementById('partyToContact').textContent=p.clientContact||'';
+  document.getElementById('partyToCity').textContent=p.clientCity||'';
+  document.getElementById('partyToEmail').textContent=p.clientEmail||'';
+  document.getElementById('paperSubject').textContent=p.subject||'—';
+  document.getElementById('paperAIText').textContent=aiText||p.aiText||'لم يتم توليد نص بعد.';
+
+  const tb=document.getElementById('paperItemsBody');tb.innerHTML='';
+  items.forEach((item,i)=>{
+    const tr=document.createElement('tr');
+    [i+1,item.name,item.qty,fmt(item.price)+' ر.س',fmt(item.total)+' ر.س'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});
+    tb.appendChild(tr);
+  });
+
+  document.getElementById('paperTotalsBody').innerHTML=`
+    <tr><td class="t-label">المجموع قبل الخصم</td><td class="t-val">${fmt(p.subtotal)} ر.س</td></tr>
+    ${(p.discount||0)>0?`<tr style="color:var(--danger);"><td class="t-label">الخصم</td><td class="t-val">- ${fmt(p.discount)} ر.س</td></tr>`:''}
+    <tr><td class="t-label">المجموع بعد الخصم</td><td class="t-val">${fmt(p.afterDiscount)} ر.س</td></tr>
+    <tr><td class="t-label">VAT 15%</td><td class="t-val">${fmt(p.vat)} ر.س</td></tr>
+    <tr class="t-final"><td>الإجمالي شامل الضريبة</td><td>${fmt(p.total)} ر.س</td></tr>`;
+
+  document.getElementById('paperPayTerms').textContent=p.paymentTerms||'—';
+  document.getElementById('paperDurationBox').textContent=p.duration||'حسب الاتفاق';
+  document.getElementById('paperValidityDays').textContent=p.validity||30;
+  document.getElementById('paperFooterCompany').textContent=p.myCompany||'';
+  const si=document.getElementById('paperStampImg');const sp=document.getElementById('paperStampPlaceholder');
+  if(p.stampData){si.src=p.stampData;si.style.display='block';sp.style.display='none';}else{si.style.display='none';sp.style.display='flex';}
+
+  document.getElementById('trackingStatus').textContent=(p.viewCount||0)>0?`تمت ${p.viewCount} مشاهدة`:'لم يُفتح بعد';
+  document.getElementById('trackingViewCount').textContent=(p.viewCount||0)+' مشاهدة';
+}
+
+window.updateProposalStatus = async function(status) {
+  if(!currentProposalId) return;
+  await updateDoc(doc(db,'proposals',currentProposalId),{status});
+  const labels={sent:'تم تحديد العرض كمُرسَل ✅',accepted:'تم قبول العرض ✅',pending:'تم إرسال العرض للاعتماد ✅'};
+  alert(labels[status]||'تم التحديث');
+};
+window.manualRecordView = async function() {
+  if(!currentProposalId) return;
+  const snap=await getDoc(doc(db,'proposals',currentProposalId));
+  const vc=(snap.data()?.viewCount||0)+1;
+  await updateDoc(doc(db,'proposals',currentProposalId),{viewCount:vc,lastViewedAt:serverTimestamp()});
+  document.getElementById('trackingViewCount').textContent=vc+' مشاهدة';
+  document.getElementById('trackingStatus').textContent='تمت '+vc+' مشاهدة';
+  alert('✅ تم تسجيل مشاهدة');
+};
+
+// ===== SHARE =====
+window.exportPDF = () => window.print();
+window.shareWA = function() {
+  if(!currentProposalId){alert('افتح عرضاً أولاً');return;}
+  const subject=document.getElementById('paperSubject').textContent;
+  const ref=document.getElementById('paperRef').textContent;
+  const total=document.getElementById('paperFooterCompany').textContent;
+  const msg=`السلام عليكم،\n\nنرسل لكم عرض السعر الخاص بـ *${subject}*\n\n📋 المرجع: ${ref}\n\nنتطلع لتعاملكم الكريم 🤝`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+};
+window.shareEmail = function() {
+  const subject=document.getElementById('paperSubject').textContent;
+  const ref=document.getElementById('paperRef').textContent;
+  const email=document.getElementById('partyToEmail').textContent;
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent('عرض سعر: '+subject+' — '+ref)}&body=${encodeURIComponent('السلام عليكم،\n\nيسعدنا تقديم عرض السعر.\n\nمع التقدير')}`;
+};
+
+// ===== NEGOTIATION AI =====
+window.runNegotiationAI = async function() {
+  const input=document.getElementById('negotiationInput').value.trim();
+  if(!input){alert('أدخل ملاحظة العميل أولاً');return;}
+  const resultEl=document.getElementById('negotiationResult');
+  resultEl.style.display='block';resultEl.textContent='🧠 يُعد الرد...';
+  const subject=document.getElementById('paperSubject').textContent;
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`أنت مفاوض تجاري للسوق السعودية. العرض: ${subject}. اعتراض العميل: "${input}". اقترح رداً احترافياً موجزاً (150 كلمة): 1.💬 الرد 2.🎯 الاستراتيجية 3.⚠️ الحد الأدنى.`}]})});
+    const result=await resp.json();
+    resultEl.textContent=result.content?.[0]?.text||'تعذر التوليد';
+  } catch(e) {
+    resultEl.textContent='💬 نشكركم على تواصلكم. يمكننا مناقشة شروط الدفع للوصول لاتفاق مناسب.\n\n🎯 عرض خصم 5% مقابل الدفع المقدم.\n\n⚠️ لا تخفض أكثر من 8% للحفاظ على هامش الربح.';
+  }
+};
+
+// ===== STATUS MAP =====
+function statusMap(){return{draft:['مسودة','s-draft'],pending:['انتظار الاعتماد','s-pending'],sent:['مُرسَل','s-sent'],accepted:['مقبول','s-accepted'],rejected:['مرفوض','s-rejected']};}
+
+// ===== ADMIN TOKENS =====
+window.doAdminLogin = function() {
+  if(document.getElementById('adminPassword').value===ADMIN_PASS){closeModal('adminModal');document.getElementById('adminPassword').value='';showPage('pageAdmin');}
+  else{showErr('adminError','كلمة المرور غير صحيحة');}
+};
+window.generateToken = async function() {
+  const plan=document.getElementById('tokenPlan').value;
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const rand4=()=>Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  const code=`PQ-${rand4()}-${rand4()}`;
+  await addDoc(collection(db,'activation_tokens'),{code,plan,used:false,createdAt:serverTimestamp()});
+  document.getElementById('newTokenCode').textContent=code;
+  document.getElementById('newTokenResult').style.display='block';
+  const msg=encodeURIComponent(`مرحباً 👋\nرمز تفعيل ProposalIQ:\n*${code}*\nأدخله في المنصة لتفعيل اشتراكك.`);
+  document.getElementById('tokenWaLink').href=`https://wa.me/${WA}?text=${msg}`;
+  loadAdminTokens();
+};
+window.copyToken = () => {navigator.clipboard.writeText(document.getElementById('newTokenCode').textContent);alert('تم النسخ ✅');};
+async function loadAdminTokens() {
+  const snap=await getDocs(collection(db,'activation_tokens'));
+  const tokens=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  const container=document.getElementById('tokensList');container.innerHTML='';
+  if(!tokens.length){container.innerHTML='<div style="text-align:center;padding:14px;color:var(--muted);">لا يوجد رموز بعد</div>';return;}
+  tokens.forEach(t=>{
+    const item=document.createElement('div');item.className='token-item';
+    item.innerHTML=`<span class="token-code">${esc(t.code)}</span><span style="font-size:.76rem;color:var(--muted);">${esc(PLAN_CONFIG[t.plan]?.name||t.plan)}</span><span class="status-badge ${t.used?'s-accepted':'s-draft'}">${t.used?'مُستخدَم':'متاح'}</span>`;
+    container.appendChild(item);
+  });
+}
+window.loadAdminTokens = loadAdminTokens;
+
+// ===== ACTIVATION =====
+window.doActivateDash = async function(inputId, errId) {
+  const code=(document.getElementById(inputId)?.value||'').trim().toUpperCase();
+  if(!code){showErr(errId,'أدخل رمز التفعيل');return;}
+  await applyToken(code,errId);
+};
+window.doActivate = async function() {
+  const code=document.getElementById('activationCode').value.trim().toUpperCase();
+  const ok=await applyToken(code,'activateError');
+  if(ok){document.getElementById('activateSuccess').style.display='block';setTimeout(()=>closeModal('activateModal'),2000);}
+};
+async function applyToken(code,errId) {
+  const q=query(collection(db,'activation_tokens'),where('code','==',code),where('used','==',false));
+  const snap=await getDocs(q);
+  if(snap.empty){showErr(errId,'الرمز غير صحيح أو مستخدَم مسبقاً');return false;}
+  const tok={id:snap.docs[0].id,...snap.docs[0].data()};
+  await updateDoc(doc(db,'activation_tokens',tok.id),{used:true,usedBy:currentUser.uid,usedAt:serverTimestamp()});
+  const cfg=PLAN_CONFIG[tok.plan]||{quota:30,months:1};
+  const expiry=new Date();expiry.setMonth(expiry.getMonth()+cfg.months);
+  await updateDoc(doc(db,'profiles',currentUser.uid),{plan:tok.plan,quota:cfg.quota,quotaUsed:0,expiry:expiry.toISOString()});
+  const profSnap=await getDoc(doc(db,'profiles',currentUser.uid));
+  currentProfile=profSnap.data();
+  if(currentProfile?.role==='manager'&&currentProfile?.companyId){
+    const agQ=query(collection(db,'profiles'),where('companyId','==',currentProfile.companyId),where('role','==','agent'));
+    const agSnap=await getDocs(agQ);
+    for(const ag of agSnap.docs){await updateDoc(doc(db,'profiles',ag.id),{plan:tok.plan,quota:cfg.quota,expiry:expiry.toISOString()});}
+  }
+  if(currentProfile?.role==='manager') refreshManagerDash(); else refreshAgentDash();
+  return true;
+}
+
+</script>
+</body>
+</html>
